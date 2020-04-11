@@ -10,11 +10,16 @@ use postgres::{self, NoTls};
 
 mod commands;
 // FIXME: this seems kinda hacky
+use crate::commands::od;
 use crate::commands::od::OD_COMMAND;
+use crate::commands::config;
+use crate::commands::config::SET_TEAM_COMMAND;
+use crate::commands::config::SET_TOURNAMENT_COMMAND;
+
 use wahoo::PostgresClient;
 
 #[group]
-#[commands(od)]
+#[commands(od, set_team, set_tournament)]
 struct General;
 
 struct Handler;
@@ -77,6 +82,9 @@ fn main() -> Result<(), Box<dyn Error>> {
         data.insert::<PostgresClient>(pg_client);
     }
 
+    // TODO: handle command errors with .after()
+    //       so i don't have to write a msg.channel_id.say
+    //       for every single error and write the error twice
     discord_client.with_framework(StandardFramework::new()
         .configure(|c| c.prefix("<"))
         .group(&GENERAL_GROUP));
