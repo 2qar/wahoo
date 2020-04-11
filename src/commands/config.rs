@@ -1,7 +1,7 @@
 use serenity::prelude::Context;
 use serenity::model::channel::Message;
 use serenity::framework::standard::{Args, Delimiter, CommandResult, CommandError, macros::command};
-use regex::{Regex, Match};
+use regex::Regex;
 
 use wahoo;
 use wahoo::PostgresClient;
@@ -13,15 +13,13 @@ fn set_team(ctx: &mut Context, msg: &Message) -> CommandResult {
     let arg = match args.advance().single::<String>() {
         Ok(s) => s,
         Err(_) => {
-            msg.channel_id.say(&ctx.http, "No link given.");
-            return Err(CommandError("no link given".to_string()));
+            return Err(CommandError::from("No link given."));
         }
     };
     let bf_team_id = match find_team_id(&arg) {
         Some(i) => i,
         None => {
-            msg.channel_id.say(&ctx.http, "Invalid URL.");
-            return Err(CommandError("invalid url".to_string()));
+            return Err(CommandError::from("Invalid URL."));
         },
     };
 
@@ -34,13 +32,11 @@ fn set_team(ctx: &mut Context, msg: &Message) -> CommandResult {
         Ok(r) => match r {
             Some(i) => i,
             None => {
-                eprintln!("no team in [guild_id: {}]", guild_id);
-                return Err(CommandError("no team in guild".to_string()));
+                return Err(CommandError::from("No team in this server, something stupid happened."));
             }
         },
         Err(e) => {
-            eprintln!("error grabbing team id: {}", e);
-            return Err(CommandError("error grabbing team id".to_string()));
+            return Err(CommandError::from(format!("Error grabbing team id: {}", e)));
         }
     };
 
@@ -54,11 +50,7 @@ fn set_team(ctx: &mut Context, msg: &Message) -> CommandResult {
             Ok(())
         }
         Err(e) => {
-            msg.channel_id.say(&ctx.http,
-                format!("Error updating database. Maybe try again, unless this looks really bad: {}",
-                    e));
-            eprintln!("error updating team link [guild id {}]: {}", guild_id, e);
-            Err(CommandError("error updating database".to_string()))
+            Err(CommandError::from(format!("Error updating database: {}", e)))
         },
     }
 }

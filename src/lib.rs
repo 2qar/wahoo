@@ -3,6 +3,7 @@ mod overbuff;
 
 use serenity::builder::CreateEmbed;
 use serenity::prelude::TypeMapKey;
+use serenity::framework::standard::CommandError;
 use postgres;
 use reqwest;
 
@@ -108,4 +109,23 @@ pub fn team_embed(team: battlefy::Team, e: &mut CreateEmbed) {
     let top_len = top.size_hint().0 as u16;
     let top_sr_avg = top.fold(0, |acc, p| acc + p.sr) / top_len;
     e.field(format!("Top 6 Average: {}", top_sr_avg), players_str, false);
+}
+
+// strips the outer CommandError("...") from the inner error message
+// hacky, but it works :)
+pub fn error_to_string(e: CommandError) -> String {
+    let e_str = format!("{:?}", e);
+    let len = e_str.len();
+    e_str[14..len-2].to_string()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_error_to_string() {
+        let e = CommandError::from("Error doing something");
+        assert_eq!(error_to_string(e), "Error doing something");
+    }
 }

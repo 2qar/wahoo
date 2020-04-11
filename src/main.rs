@@ -87,7 +87,16 @@ fn main() -> Result<(), Box<dyn Error>> {
     //       for every single error and write the error twice
     discord_client.with_framework(StandardFramework::new()
         .configure(|c| c.prefix("<"))
-        .group(&GENERAL_GROUP));
+        .group(&GENERAL_GROUP)
+        .after(|ctx, msg, cmd_name, error| {
+            if let Err(e) = error {
+                eprintln!("[guild_id {}]: {}", msg.guild_id.unwrap().to_string(),
+                    format!("{:?}", e));
+                if let Err(e) = msg.channel_id.say(&ctx.http, wahoo::error_to_string(e)) {
+                    eprintln!("error sending message: {}", e);
+                }
+            }
+        }));
     discord_client.start()?;
 
     Ok(())
