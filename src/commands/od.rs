@@ -2,8 +2,9 @@ use serenity::prelude::Context;
 use serenity::model::channel::Message;
 use serenity::framework::standard::macros::command;
 use serenity::framework::standard::{CommandResult, CommandError};
+use battlefy;
 
-use wahoo::{self, battlefy};
+use wahoo;
 
 #[command]
 pub fn od(ctx: &mut Context, msg: &Message) -> CommandResult {

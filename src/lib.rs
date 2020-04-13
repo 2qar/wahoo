@@ -1,6 +1,6 @@
-pub mod battlefy;
 mod overbuff;
 
+use battlefy;
 use serenity::builder::CreateEmbed;
 use serenity::prelude::TypeMapKey;
 use serenity::framework::standard::CommandError;
