@@ -17,15 +17,11 @@ fn update_field<T: ToSql + Sync>(field: &str, value: T, ctx: &mut Context, msg: 
     let channel_id = msg.channel_id.to_string();
     let team_id = match wahoo::team_id_in(guild_id, &channel_id, &mut db) {
         Ok(r) => match r {
-            Some(i) => i,
-            None => {
-                return Err(CommandError::from("No team in this server, something stupid happened."));
-            }
+            Some(i) => Ok(i),
+            None => Err(CommandError::from("No team in this server, something stupid happened.")),
         },
-        Err(e) => {
-            return Err(CommandError::from(format!("Error grabbing team id: {}", e)));
-        }
-    };
+        Err(e) => Err(CommandError::from(format!("Error grabbing team id: {}", e))),
+    }?;
 
     let query = format!(
         "INSERT INTO battlefy (team, {}) VALUES ($1, $2)
@@ -46,17 +42,13 @@ fn update_field<T: ToSql + Sync>(field: &str, value: T, ctx: &mut Context, msg: 
 fn set_team(mut ctx: &mut Context, msg: &Message) -> CommandResult {
     let mut args = Args::new(&msg.content, &[Delimiter::Single(' ')]);
     let arg = match args.advance().single::<String>() {
-        Ok(s) => s,
-        Err(_) => {
-            return Err(CommandError::from("No link given."));
-        }
-    };
+        Ok(s) => Ok(s),
+        Err(_) => Err(CommandError::from("No link given.")),
+    }?;
     let bf_team_id = match find_team_id(&arg) {
-        Some(i) => i,
-        None => {
-            return Err(CommandError::from("Invalid URL."));
-        },
-    };
+        Some(i) => Ok(i),
+        None => Err(CommandError::from("Invalid URL.")),
+    }?;
 
     match update_field("team_id", bf_team_id, &mut ctx, &msg) {
         Ok(_) => {
@@ -72,17 +64,13 @@ fn set_team(mut ctx: &mut Context, msg: &Message) -> CommandResult {
 fn set_tournament(mut ctx: &mut Context, msg: &Message) -> CommandResult {
     let mut args = Args::new(&msg.content, &[Delimiter::Single(' ')]);
     let arg = match args.advance().single::<String>() {
-        Ok(s) => s,
-        Err(e) => {
-            return Err(CommandError::from("No link given."));
-        }
-    };
+        Ok(s) => Ok(s),
+        Err(e) => Err(CommandError::from("No link given.")),
+    }?;
     let stage_id = match find_stage_id(&arg) {
-        Some(i) => i,
-        None => {
-            return Err(CommandError::from("Invalid URL."));
-        }
-    };
+        Some(i) => Ok(i),
+        None => Err(CommandError::from("Invalid URL.")),
+    }?;
 
     match update_field("stage_id", stage_id, &mut ctx, &msg) {
         Ok(_) => {
