@@ -1,13 +1,22 @@
 use serenity::prelude::Context;
 use serenity::model::channel::Message;
 use serenity::framework::standard::macros::command;
-use serenity::framework::standard::{CommandResult, CommandError};
+use serenity::framework::standard::{Args, Delimiter, CommandResult, CommandError};
 use battlefy;
 
 use wahoo;
 
 #[command]
+//#[min_args(1)]
 pub fn od(ctx: &mut Context, msg: &Message) -> CommandResult {
+    let mut args = Args::new(&msg.content, &[Delimiter::Single(' ')]);
+    let arg = match args.advance().single_quoted::<String>() {
+        Ok(s) => s,
+        Err(e) => {
+            return Err(CommandError::from("<od [round OR name]"));
+        }
+    };
+
     let mut data = ctx.data.write();
     let mut db = data.get_mut::<wahoo::PostgresClient>().expect("error grabbing psql client");
     let guild_id = msg.guild_id.unwrap().to_string().parse::<i64>().unwrap();
@@ -35,24 +44,56 @@ pub fn od(ctx: &mut Context, msg: &Message) -> CommandResult {
         }
     };
 
-    match battlefy::matchup(&bf.stage_id, &bf.team_id, 1) {
-        Ok(s) => match s {
-            Some(t) => {
-                msg.channel_id.send_message(&ctx.http, |m| {
-                    m.embed(|mut e| {
-                        wahoo::team_embed(t, &mut e);
-                        e
-                    });
-                    m
-                });
-                Ok(())
-            },
-            None => {
-                Err(CommandError::from("No match found."))
-            },
+    let team: Result<battlefy::Team, CommandError> = match arg.parse::<i32>() {
+        Ok(i) => {
+            if i < 0 {
+                return Err(CommandError::from("that's not how it works"));
+            }
+
+            match battlefy::matchup(&bf.stage_id, &bf.team_id, i as u8) {
+                Ok(s) => match s {
+                    Some(t) => Ok(t),
+                    None => {
+                        return Err(CommandError::from("No match found."));
+                    },
+                },
+                Err(e) => {
+                    return Err(CommandError::from(format!("Error grabbing match: {}", e)));
+                },
+            }
         },
-        Err(e) => {
-            Err(CommandError::from(format!("Error grabbing match: {}", e)))
-        },
-    }
+        Err(_) => {
+            // FIXME: stupid, just add a tournament_id field to the battlefy table
+            let tournament_id = &bf.tournament_link[111..135];
+
+            match battlefy::Team::find(tournament_id, &arg) {
+                Ok(r) => match r {
+                    battlefy::SearchResult::Team(t) => Ok(t),
+                    battlefy::SearchResult::Teams(teams) => {
+                        let mut message = String::from("```\n");
+                        for team in teams {
+                            message.push_str(format!("{}\n", team.name()).as_str());
+                        }
+                        message.push_str("```");
+                        msg.channel_id.say(&ctx.http, message);
+                        return Ok(());
+                    },
+                    battlefy::SearchResult::None => {
+                        return Err(CommandError::from("No teams found."));
+                    }
+                },
+                Err(e) => {
+                    return Err(CommandError::from(format!("Error searching: {}", e)));
+                }
+            }
+        }
+    };
+
+    msg.channel_id.send_message(&ctx.http, |m| {
+        m.embed(|mut e| {
+            wahoo::team_embed(team.unwrap(), &mut e);
+            e
+        })
+    });
+    Ok(())
 }
