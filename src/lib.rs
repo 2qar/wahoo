@@ -1,11 +1,10 @@
-mod overbuff;
-
-use battlefy;
 use serenity::builder::CreateEmbed;
 use serenity::prelude::TypeMapKey;
 use serenity::framework::standard::CommandError;
 use postgres;
 use reqwest;
+use battlefy;
+use overbuff;
 
 pub struct PostgresClient;
 impl TypeMapKey for PostgresClient {

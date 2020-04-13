@@ -8,6 +8,7 @@ edition = "2018"
 
 [dependencies]
 battlefy = { git = "https://github.com/BigHeadGeorge/battlefy" }
+overbuff = { git = "https://github.com/BigHeadGeorge/overbuff" }
 serenity = "0.8"
 postgres = "0.17.2"
 reqwest = "0.10"

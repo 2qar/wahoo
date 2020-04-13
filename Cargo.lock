@@ -901,6 +901,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "overbuff"
+version = "0.1.0"
+source = "git+https://github.com/BigHeadGeorge/overbuff#dd563a6efde278186738fb579aabb59c770b60d4"
+dependencies = [
+ "reqwest",
+ "select",
+]
+
+[[package]]
 name = "parking_lot"
 version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2013,6 +2022,7 @@ name = "wahoo"
 version = "0.1.0"
 dependencies = [
  "battlefy",
+ "overbuff",
  "postgres",
  "regex",
  "reqwest",
