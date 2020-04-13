@@ -63,7 +63,10 @@ pub fn team_id_in(guild_id: i64, channel_id: &str, pg: &mut postgres::Client) ->
 fn overbuff_players(players: &Vec<battlefy::Player>) -> Vec<overbuff::Player> {
     let players: Vec<&battlefy::Player> = players.iter().filter(|p| p.battletag().is_some()).collect();
 
-    let client = reqwest::blocking::Client::new();
+    let client = reqwest::blocking::Client::builder()
+        .user_agent("wahoo :)")
+        .build()
+        .unwrap();
     let mut overbuff_players: Vec<overbuff::Player> = Vec::new();
     // TODO: use threads, maybe
     for player in players {
