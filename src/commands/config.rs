@@ -38,13 +38,12 @@ fn update_field<T: ToSql + Sync>(field: &str, value: T, ctx: &mut Context, msg: 
 }
 
 #[command]
-//#[num_args(1)] // TODO: <- use this, but fix the macro scope problem first
+#[num_args(1)]
+#[usage("<set_team [team_url]")]
+#[description("Update this server's Battlefy team.")]
 fn set_team(mut ctx: &mut Context, msg: &Message) -> CommandResult {
     let mut args = Args::new(&msg.content, &[Delimiter::Single(' ')]);
-    let arg = match args.advance().single::<String>() {
-        Ok(s) => Ok(s),
-        Err(_) => Err(CommandError::from("No link given.")),
-    }?;
+    let arg = args.advance().single::<String>().unwrap();
     let bf_team_id = match find_team_id(&arg) {
         Some(i) => Ok(i),
         None => Err(CommandError::from("Invalid URL.")),
@@ -60,13 +59,13 @@ fn set_team(mut ctx: &mut Context, msg: &Message) -> CommandResult {
 }
 
 #[command]
-//#[num_args(1)]
+#[num_args(1)]
+#[usage("<set_tournament [tournament_url]")]
+#[description("Update this server's Battlefy tournament.
+              The tournament URL has to be from the bracket page of the tournament.")]
 fn set_tournament(mut ctx: &mut Context, msg: &Message) -> CommandResult {
     let mut args = Args::new(&msg.content, &[Delimiter::Single(' ')]);
-    let arg = match args.advance().single::<String>() {
-        Ok(s) => Ok(s),
-        Err(e) => Err(CommandError::from("No link given.")),
-    }?;
+    let arg = args.advance().single::<String>().unwrap();
     let stage_id = match find_stage_id(&arg) {
         Some(i) => Ok(i),
         None => Err(CommandError::from("Invalid URL.")),

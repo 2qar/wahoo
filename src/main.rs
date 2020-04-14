@@ -5,7 +5,7 @@ use serenity;
 use serenity::model::guild::Guild;
 use serenity::prelude::{EventHandler, Context};
 use serenity::framework::standard::macros::group;
-use serenity::framework::standard::StandardFramework;
+use serenity::framework::standard::{StandardFramework, DispatchError};
 use postgres::{self, NoTls};
 
 mod commands;
@@ -93,7 +93,19 @@ fn main() -> Result<(), Box<dyn Error>> {
                     eprintln!("error sending message: {}", e);
                 }
             }
-        }));
+        })
+        .on_dispatch_error(|ctx, msg, e| {
+            match e {
+                DispatchError::NotEnoughArguments{min, given} => {
+                    msg.channel_id.say(&ctx.http, "Not enough arguments given.");
+                }
+                DispatchError::TooManyArguments{max, given} => {
+                    msg.channel_id.say(&ctx.http, "Too many arguments.");
+                }
+                _ => eprintln!("unhandled dispatch error: {:?}", e),
+            };
+        })
+    );
     discord_client.start()?;
 
     Ok(())

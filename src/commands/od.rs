@@ -7,7 +7,10 @@ use battlefy;
 use wahoo;
 
 #[command]
-//#[min_args(1)]
+#[num_args(1)]
+#[usage("<od [round_num OR team_name]")]
+#[description("Search for a team by name, or by round number.
+              Round number grabs stats on the team matched with you in that round.")]
 pub fn od(ctx: &mut Context, msg: &Message) -> CommandResult {
     let mut args = Args::new(&msg.content, &[Delimiter::Single(' ')]);
     let arg = match args.advance().single_quoted::<String>() {
