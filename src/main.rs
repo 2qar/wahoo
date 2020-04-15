@@ -1,11 +1,12 @@
 use std::error::Error;
 use std::env;
+use std::default::Default;
 
 use serenity;
 use serenity::model::guild::Guild;
 use serenity::prelude::{EventHandler, Context};
 use serenity::framework::standard::macros::group;
-use serenity::framework::standard::{StandardFramework, DispatchError};
+use serenity::framework::standard::{StandardFramework, DispatchError, HelpCommand, HelpOptions};
 use postgres::{self, NoTls};
 
 mod commands;
@@ -15,12 +16,17 @@ use crate::commands::od::OD_COMMAND;
 use crate::commands::config;
 use crate::commands::config::SET_TEAM_COMMAND;
 use crate::commands::config::SET_TOURNAMENT_COMMAND;
+use crate::commands::help;
 
 use wahoo::PostgresClient;
 
 #[group]
-#[commands(od, set_team, set_tournament)]
-struct General;
+#[commands(od)]
+struct Battlefy;
+
+#[group]
+#[commands(set_team, set_tournament)]
+struct Config;
 
 struct Handler;
 impl EventHandler for Handler {
@@ -84,7 +90,8 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     discord_client.with_framework(StandardFramework::new()
         .configure(|c| c.prefix("<"))
-        .group(&GENERAL_GROUP)
+        .group(&CONFIG_GROUP)
+        .group(&BATTLEFY_GROUP)
         .after(|ctx, msg, cmd_name, error| {
             if let Err(e) = error {
                 eprintln!("[guild_id {}]: {}", msg.guild_id.unwrap().to_string(),
@@ -105,6 +112,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 _ => eprintln!("unhandled dispatch error: {:?}", e),
             };
         })
+        .help(&help::HELP)
     );
     discord_client.start()?;
 
