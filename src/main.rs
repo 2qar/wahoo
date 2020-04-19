@@ -14,7 +14,7 @@ use commands::*;
 use wahoo::PostgresClient;
 
 #[group]
-#[commands(od)]
+#[commands(round, team)]
 struct Battlefy;
 
 #[group]
