@@ -1,3 +1,7 @@
-pub mod od;
-pub mod config;
-pub mod help;
+mod od;
+mod config;
+mod help;
+
+pub use self::od::*;
+pub use self::config::*;
+pub use self::help::*;

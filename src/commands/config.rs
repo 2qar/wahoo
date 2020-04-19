@@ -51,7 +51,9 @@ fn set_team(mut ctx: &mut Context, msg: &Message) -> CommandResult {
 
     match update_field("team_id", bf_team_id, &mut ctx, &msg) {
         Ok(_) => {
-            msg.channel_id.say(&ctx.http, "Updated team URL.");
+            if let Err(e) = msg.channel_id.say(&ctx.http, "Updated team URL.") {
+                eprintln!("error sending status message: {}", e);
+            }
             Ok(())
         },
         Err(e) => Err(e),
@@ -73,7 +75,9 @@ fn set_tournament(mut ctx: &mut Context, msg: &Message) -> CommandResult {
 
     match update_field("stage_id", stage_id, &mut ctx, &msg) {
         Ok(_) => {
-            msg.channel_id.say(&ctx.http, "Updated tournament.");
+            if let Err(e) = msg.channel_id.say(&ctx.http, "Updated tournament.") {
+                eprintln!("error sending status message: {}", e);
+            }
             Ok(())
         },
         Err(e) => Err(e)

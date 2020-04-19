@@ -13,10 +13,7 @@ use wahoo;
               Round number grabs stats on the team matched with you in that round.")]
 pub fn od(ctx: &mut Context, msg: &Message) -> CommandResult {
     let mut args = Args::new(&msg.content, &[Delimiter::Single(' ')]);
-    let arg = match args.advance().single_quoted::<String>() {
-        Ok(s) => Ok(s),
-        Err(e) => Err(CommandError::from("<od [round OR name]")),
-    }?;
+    let arg = args.advance().single_quoted::<String>().unwrap();
 
     let mut data = ctx.data.write();
     let mut db = data.get_mut::<wahoo::PostgresClient>().expect("error grabbing psql client");
@@ -64,7 +61,9 @@ pub fn od(ctx: &mut Context, msg: &Message) -> CommandResult {
                             message.push_str(format!("{}\n", team.name()).as_str());
                         }
                         message.push_str("```");
-                        msg.channel_id.say(&ctx.http, message);
+                        if let Err(e) = msg.channel_id.say(&ctx.http, message) {
+                            eprintln!("error sending team search list: {}", e);
+                        }
                         return Ok(());
                     },
                     battlefy::SearchResult::None => Err(CommandError::from("No teams found.")),
@@ -74,11 +73,13 @@ pub fn od(ctx: &mut Context, msg: &Message) -> CommandResult {
         }
     }?;
 
-    msg.channel_id.send_message(&ctx.http, |m| {
+    if let Err(e) = msg.channel_id.send_message(&ctx.http, |m| {
         m.embed(|mut e| {
             wahoo::team_embed(team, &mut e);
             e
         })
-    });
+    }) {
+        eprintln!("error sending message: {}", e);
+    }
     Ok(())
 }

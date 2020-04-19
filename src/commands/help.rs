@@ -3,19 +3,18 @@ use std::collections::HashSet;
 use serenity::prelude::Context;
 use serenity::model::id::UserId;
 use serenity::model::channel::Message;
-use serenity::framework::standard::{Args, HelpOptions, CommandGroup, CommandResult, CommandError};
+use serenity::framework::standard::{Args, HelpOptions, CommandGroup, CommandResult};
 use serenity::framework::standard::macros::help;
-use serenity::framework::standard::help_commands::plain;
 
 #[help]
-pub fn help(ctx: &mut Context, msg: &Message, mut args: Args, opt: &'static HelpOptions, groups: &[&'static CommandGroup], ids: HashSet<UserId>) -> CommandResult {
+pub fn help(ctx: &mut Context, msg: &Message, mut args: Args, _opt: &'static HelpOptions, groups: &[&'static CommandGroup], _ids: HashSet<UserId>) -> CommandResult {
     let help_msg = match args.single::<String>() {
         Ok(s) => formatted_command(groups, s),
         Err(_) => help_str(groups),
     };
 
     if let Err(why) = msg.channel_id.say(&ctx.http, help_msg) {
-        eprintln!("error sending help message");
+        eprintln!("error sending help message: {}", why);
     }
 
     Ok(())
